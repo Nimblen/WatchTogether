@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: messenger_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - messenger_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  messenger:
+    build:
+      context: ./MessengerService
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:password@db/messenger_db
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./MessengerService:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8002
+
+  gateway:
+    build:
+      context: ./ApiGateway
+    ports:
+      - "8000:8000"
+    environment:
+      - MESSENGER_SERVICE_URL=http://messenger:8002
+      - AUTH_SERVICE_URL=http://auth:8001
+      - WATCH_PARTY_SERVICE_URL=http://watchparty:8003
+    depends_on:
+      messenger:
+        condition: service_healthy
+    volumes:
+      - ./ApiGateway:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+volumes:
+  messenger_db_data:

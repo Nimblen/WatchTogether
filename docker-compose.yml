@@ -12,11 +12,6 @@ services:
       - "5432:5432"
     volumes:
       - messenger_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "user"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   messenger:
     build:
@@ -26,8 +21,7 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://user:password@db/messenger_db
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     volumes:
       - ./MessengerService:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8002
@@ -42,8 +36,7 @@ services:
       - AUTH_SERVICE_URL=http://auth:8001
       - WATCH_PARTY_SERVICE_URL=http://watchparty:8003
     depends_on:
-      messenger:
-        condition: service_healthy
+      - messenger
     volumes:
       - ./ApiGateway:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000

@@ -1,28 +1,18 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from services.chat_service import ChatService
-from repositories.chat_repository import ChatRepository
-from schemas.chat_schema import ChatCreate, ChatRead
-from database.engine import get_db_session
+from fastapi import APIRouter, HTTPException
+from services.chat_service import create_chat, get_chat
 
 router = APIRouter()
 
-@router.post("/chats", response_model=ChatRead)
-async def create_chat(
-    chat_data: ChatCreate, db_session: AsyncSession = Depends(get_db_session)
-):
-    """
-    Creates new chat
-    """
-    chat_service = ChatService(ChatRepository(db_session))
-    return await chat_service.create_chat(chat_data)
+@router.post("/")
+async def create_new_chat(participants: list[int], chat_type: str = "private", name: str = None):
+    if chat_type == "group" and not name:
+        raise HTTPException(status_code=400, detail="Group chats require a name.")
+    chat_id = await create_chat(participants, chat_type, name)
+    return {"chat_id": chat_id}
 
-@router.get("/chats/{chat_id}/members", response_model=list[int])
-async def get_chat_members(
-    chat_id: int, db_session: AsyncSession = Depends(get_db_session)
-):
-    """
-    Returns list of chat members
-    """
-    chat_service = ChatService(ChatRepository(db_session))
-    return await chat_service.chat_repository.get_chat_members(chat_id)
+@router.get("/{chat_id}")
+async def fetch_chat(chat_id: int):
+    chat = await get_chat(chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found.")
+    return chat

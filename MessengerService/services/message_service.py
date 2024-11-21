@@ -1,14 +1,16 @@
-from repositories.message_repository import MessageRepository
-from schemas.message_schema import MessageCreate, MessageRead
+from datetime import datetime
+from database.mongo import messages_collection
 
-class MessageService:
-    def __init__(self, message_repository: MessageRepository):
-        self.message_repository = message_repository
+async def save_message(chat_id: int, sender_id: int, text: str):
+    await messages_collection.insert_one({
+        "chat_id": chat_id,
+        "sender_id": sender_id,
+        "text": text,
+        "timestamp": datetime.utcnow()
+    })
 
-    async def send_message(self, message_data: MessageCreate) -> MessageRead:
-        message = await self.message_repository.create_message(
-            sender_id=message_data.sender_id,
-            chat_id=message_data.chat_id,
-            text=message_data.text,
-        )
-        return MessageRead.from_orm(message)
+async def get_messages(chat_id: int):
+    return await messages_collection.find({"chat_id": chat_id}).to_list(100)
+
+
+

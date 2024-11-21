@@ -1,13 +1,16 @@
 from pydantic import BaseModel
-from typing import List
+from typing import Optional, List
+from datetime import datetime
 
 class ChatCreate(BaseModel):
-    name: str | None = None  # Имя для группового чата
-    is_group: bool = False  # Указывает, групповой это чат или индивидуальный
-    members: List[int]  # Список ID участников чата
+    participants: List[int]
+    type: str = "private"
+    name: Optional[str] = None
 
-class ChatRead(BaseModel):
-    id: int
-    name: str | None
-    is_group: bool
-    members: List[int]
+class ChatResponse(BaseModel):
+    chat_id: int
+    type: str
+    name: Optional[str]
+    participants: List[int]
+    created_at: datetime
+    last_message: Optional[dict]

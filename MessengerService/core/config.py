@@ -1,10 +1,11 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost/message_db"
+    # MongoDB
+    MONGO_URI: str = "mongodb://localhost:27017"
+    MONGO_DB_NAME: str = "messenger"
 
-    class Config:
-        env_file = ".env" 
+    # Redis
+    REDIS_URI: str = "redis://localhost:6379/0"
 
-# Экземпляр настроек
 settings = Settings()

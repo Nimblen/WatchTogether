@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from schemas import UserCreate, LoginRequest, Token, TokenRefreshRequest
-from services.auth_services import (
+from AuthService.services.user import (
     get_user,
     create_user,
     verify_password,
     password_conditionals,
 )
-from services.token_services import (
+from AuthService.services.token import (
     create_access_token,
     create_refresh_token,
     decode_token,

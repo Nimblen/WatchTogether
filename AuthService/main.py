@@ -6,7 +6,7 @@ from routers import auth
 
 app = FastAPI(
     title="Authentication Service",
-    description="Сервис для регистрации, авторизации и обновления токенов",
+    description="Service for Authentication and Authorization",
     version="1.0.0",
 )
 
